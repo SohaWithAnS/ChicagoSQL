@@ -1,2 +1,0 @@
-# ChicagoSQL
-SQL engine
