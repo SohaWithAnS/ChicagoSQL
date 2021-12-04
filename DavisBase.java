@@ -1,18 +1,15 @@
 import java.io.File;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
+// import java.nio.ByteBuffer;
 //import java.io.File;
 //import java.io.FileReader;
 import java.util.Scanner;
 
 /**
- *  @author Chris Irwin Davis
+ *  @author Team Chicago
  *  @version 1.0
  *  <b>
- *  <p>This is an example of how to create an interactive prompt</p>
- *  <p>There is also some guidance to get started with read/write of
- *     binary data files using the RandomAccessFile class from the
- *     Java Standard Library.</p>
+ *  <p>We're just trying our best :)</p>
  *  </b>
  *
  */
@@ -46,6 +43,14 @@ public class DavisBase {
 			Commands.parseUserCommand(userCommand);
 		}
 		System.out.println("Exiting...");
+	}
+
+	public static String line(String s,int num) {
+		String a = "";
+		for(int i=0;i<num;i++) {
+			a += s;
+		}
+		return a;
 	}
 
 	public static void init(){
@@ -328,10 +333,11 @@ public class DavisBase {
 			
 			catalogColumn.close();
 			
-			// String[] cur_row_id_value = {"10", Constants.TABLE_CATALOG,"cur_row_id","INT","3",Constants.FALSE,Constants.FALSE};		
-			// Table.insertInto(Constants.COLUMN_CATALOG,cur_row_id_value,Constants.catalogDir);			//add current row_id column to davisbase_columns
+			String[] cur_row_id_value = {"10", Constants.TABLE_CATALOG,"cur_row_id","INT","3",Constants.FALSE,Constants.FALSE};		
+			Table.insertInto(Constants.COLUMN_CATALOG,cur_row_id_value,Constants.catalogDir);			//add current row_id column to davisbase_columns
 		}
-		catch (Exception e) {
+		catch (Exception e) 
+		{
 			System.out.println(e);
 		}
 	}

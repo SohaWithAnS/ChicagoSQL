@@ -1,5 +1,6 @@
 import static java.lang.System.out;
 
+import java.io.File;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,6 +83,30 @@ public class Commands {
 		System.out.println(Settings.getCopyright());
 	}
 
+	// to check if table already exists
+	public static boolean tableExists(String tableName){
+		tableName = tableName+".tbl";
+		
+		try {	
+			File data_dir = new File(Constants.userDataDir);
+			if (tableName.equalsIgnoreCase(Constants.TABLE_CATALOG+Constants.FILE_TYPE) || tableName.equalsIgnoreCase(Constants.COLUMN_CATALOG+Constants.FILE_TYPE))
+				data_dir = new File(Constants.catalogDir) ;
+			
+			String[] oldTables = data_dir.list();
+			for (int i=0; i<oldTables.length; i++) {
+				if(oldTables[i].equals(tableName))
+					return true;
+			}
+		}
+		catch (Exception e) {
+			System.out.println("Unable to create directory");
+			System.out.println(e);
+		}
+
+		return false;
+	}
+
+	// WORKING!!!
 	public static void parseCreateTable(String command) {
 		/* TODO: Before attempting to create new table file, check if the table already exists */
 		
@@ -93,8 +118,33 @@ public class Commands {
 		String tableFileName = commandTokens.get(2) + ".tbl";
 
 		/* YOUR CODE GOES HERE */
+		// String tableName = commandTokens.get(2);
 		
+		// if(tableExists(tableName)){
+		// 	System.out.println("Table "+tableName+" already exists.");
+		// }
+		// else{
+		// 	Table.createTable(tableName, create_cols);		
+		// }
+
+		System.out.println("Parsing the string:\"" + command + "\"");
 		
+		String tableName = command.split(" ")[2];
+		String cols = command.split(tableName)[1].trim();
+		String[] create_cols = cols.substring(1, cols.length()-1).split(",");
+		
+		for(int i = 0; i < create_cols.length; i++)
+			create_cols[i] = create_cols[i].trim();
+		
+		if(tableExists(tableName)){
+			System.out.println("Table "+tableName+" already exists.");
+		}
+		else
+		{
+			Table.createTable(tableName, create_cols);		
+		}
+
+
 		/*  Code to create a .tbl file to contain table data */
 		try {
 			/*  Create RandomAccessFile tableFile in read-write mode.
@@ -102,7 +152,7 @@ public class Commands {
 			 */
 
 			/* Create a new table file whose initial size is one page (i.e. page size number of bytes) */
-			RandomAccessFile tableFile = new RandomAccessFile("data/user_data/" + tableFileName, "rw");
+			RandomAccessFile tableFile = new RandomAccessFile("data/user_data/" + tableName, "rw");
 			tableFile.setLength(Settings.getPageSize());
 
 			/* Write page header with initial configuration */
@@ -128,10 +178,19 @@ public class Commands {
 		 */
 	}
 
+	// WORKING!!!
 	public static void show(ArrayList<String> commandTokens) {
 		System.out.println("Command: " + tokensToCommandString(commandTokens));
 		System.out.println("Stub: This is the show method");
 		/* TODO: Your code goes here */
+
+		System.out.println("Parsing the string:\"show tables\"");
+		
+
+		String table = Constants.TABLE_CATALOG;
+		String[] cols = {Constants.HEADER_TABLE_NAME};
+		String[] condition = new String[0];
+		Table.select(table, cols, condition,true);
 	}
 
 	/*
@@ -141,6 +200,31 @@ public class Commands {
 		System.out.println("Command: " + tokensToCommandString(commandTokens));
 		System.out.println("Stub: This is the insertRecord method");
 		/* TODO: Your code goes here */
+
+		String command = tokensToCommandString(commandTokens);
+
+		try{
+			System.out.println("Parsing the string:\"" + command + "\"");
+			
+			String table = command.split(" ")[2];
+			String rawCols = command.split("values")[1].trim();
+			String[] insert_vals_init = rawCols.substring(1, rawCols.length()-1).split(",");
+			String[] insert_vals = new String[insert_vals_init.length + 1];
+			for(int i = 1; i <= insert_vals_init.length; i++)
+				insert_vals[i] = insert_vals_init[i-1].trim();
+		
+			if(tableExists(table)){
+				Table.insertInto(table, insert_vals,Constants.userDataDir+"/");
+			}
+			else
+			{
+				System.out.println("Table "+table+" does not exist.");
+			}
+			}
+			catch(Exception e)
+			{
+				System.out.println(e+e.toString());
+			}
 	}
 	
 	public static void parseDelete(ArrayList<String> commandTokens) {
@@ -161,9 +245,92 @@ public class Commands {
 	/**
 	 *  Stub method for executing queries
 	 */
+	// SELECT
 	public static void parseQuery(ArrayList<String> commandTokens) {
 		System.out.println("Command: " + tokensToCommandString(commandTokens));
 		System.out.println("Stub: This is the parseQuery method");
+
+		String command = tokensToCommandString(commandTokens);
+
+		System.out.println("Parsing the string:\"" + command + "\"");
+		
+		String[] parsedCondition;
+		String[] columns;
+		String[] cols_condition = command.split("where");
+		if(cols_condition.length > 1){
+			parsedCondition = parseCondition(cols_condition[1].trim());
+		}
+		else{
+			parsedCondition = new String[0];
+		}
+		String[] select = cols_condition[0].split("from");
+		String tableName = select[1].trim();
+		String cols = select[0].replace("select", "").trim();
+		if(cols.contains("*")){
+			columns = new String[1];
+			columns[0] = "*";
+		}
+		else{
+			columns = cols.split(",");
+			for(int i = 0; i < columns.length; i++)
+				columns[i] = columns[i].trim();
+		}
+		
+		if(!tableExists(tableName)){
+			System.out.println("Table "+tableName+" does not exist.");
+		}
+		else
+		{
+		    Table.select(tableName, columns, parsedCondition,true);
+		}
+	}
+
+	public static String[] parseCondition(String condition){
+		String parsedCondition[] = new String[3];
+		String temp[] = new String[2];
+		if(condition.contains(Constants.EQUALS_SIGN)) {
+			temp = condition.split(Constants.EQUALS_SIGN);
+			parsedCondition[0] = temp[0].trim();
+			parsedCondition[1] = Constants.EQUALS_SIGN;
+			parsedCondition[2] = temp[1].trim();
+		}
+		
+		if(condition.contains(Constants.LESS_THAN_SIGN)) {
+			temp = condition.split(Constants.LESS_THAN_SIGN);
+			parsedCondition[0] = temp[0].trim();
+			parsedCondition[1] = Constants.LESS_THAN_SIGN;
+			parsedCondition[2] = temp[1].trim();
+		}
+		
+		if(condition.contains(Constants.GREATER_THAN_SIGN)) {
+			temp = condition.split(Constants.GREATER_THAN_SIGN);
+			parsedCondition[0] = temp[0].trim();
+			parsedCondition[1] = Constants.GREATER_THAN_SIGN;
+			parsedCondition[2] = temp[1].trim();
+		}
+		
+		if(condition.contains(Constants.LESS_THAN_EQUAL_SIGN)) {
+			temp = condition.split(Constants.LESS_THAN_EQUAL_SIGN);
+			parsedCondition[0] = temp[0].trim();
+			parsedCondition[1] = Constants.LESS_THAN_EQUAL_SIGN;
+			parsedCondition[2] = temp[1].trim();
+		}
+
+		if(condition.contains(Constants.GREATER_THAN_EQUAL_SIGN)) {
+			temp = condition.split(Constants.GREATER_THAN_EQUAL_SIGN);
+			parsedCondition[0] = temp[0].trim();
+			parsedCondition[1] = Constants.GREATER_THAN_EQUAL_SIGN;
+			parsedCondition[2] = temp[1].trim();
+		}
+		
+		if(condition.contains(Constants.NOT_EQUAL_SIGN)) {
+			temp = condition.split(Constants.NOT_EQUAL_SIGN);
+			parsedCondition[0] = temp[0].trim();
+			parsedCondition[1] = Constants.NOT_EQUAL_SIGN;
+			parsedCondition[2] = temp[1].trim();
+		}
+
+		return parsedCondition;
 	}
 
 	/**

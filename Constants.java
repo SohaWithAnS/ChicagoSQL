@@ -14,6 +14,7 @@ public final class Constants
 	
 	//data types
 	
+	
 	//NULL
 	public static final byte NULL = 0x00;
 	//public static final byte SHORTNULL = 0x01;

@@ -19,7 +19,7 @@ public class BPlusTree{
 			else if(dt.equals("INT") || dt.equals("REAL")) {
 				val += 4;
 			}
-			else if(dt.equals("BIGINT") || dt.equals("DOUBLE") || dt.equals("DATETIME") || dt.equals("DATE")) {
+			else if(dt.equals("BIGINT") || dt.equals("LONG") || dt.equals("DOUBLE") || dt.equals("DATETIME") || dt.equals("DATE")) {
 				val += 8;
 			}
 			else if(dt.equals("TEXT")) {
@@ -610,7 +610,8 @@ public class BPlusTree{
     
 	public static byte getPageType(RandomAccessFile file, int page){
 		// byte type=Constants.SHORTINT;
-		byte type = Constants.TINYINT;
+		// byte type = Constants.TINYINT;
+		byte type = Constants.INT;
 		try {
 			file.seek((page-1)*Constants.pageSize);
 			type = file.readByte();
