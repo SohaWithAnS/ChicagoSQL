@@ -737,7 +737,18 @@ public class Table{
 			RandomAccessFile file = new RandomAccessFile(path+table+Constants.FILE_TYPE, "rw");
 			String[] columnName = getColName(table);
 			
-			BTree b = new BTree(new RandomAccessFile(path+table+Constants.INDEX_FILE_TYPE, "rw"));
+			// BTree b = new BTree(new RandomAccessFile(path+table+Constants.INDEX_FILE_TYPE, "rw"));
+			String s = "";
+			for(int i=0; i < cols.length; i++){
+				if(i==cols.length-1){
+					s += cols[i];
+				}
+				else{
+					s += cols[i]+".";
+				}
+				
+			}
+			BTree b = new BTree(new RandomAccessFile(path+table+"." + s + Constants.INDEX_FILE_TYPE, "rw"));
 			
 			int control=0; // = new int[cols.length];
 			for(int j = 0; j < cols.length; j++)

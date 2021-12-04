@@ -40,9 +40,24 @@ public class Commands {
 				System.out.println("Case: SELECT");
 				parseQuery(commandTokens);
 				break;
+			// case "create":
+			// 	System.out.println("Case: CREATE");
+			// 	parseCreateTable(userCommand);
+			// 	break;
 			case "create":
-				System.out.println("Case: CREATE");
-				parseCreateTable(userCommand);
+				switch(commandTokens.get(1)){
+					case "table":
+						System.out.println("Case: CREATE TABLE");
+						parseCreateTable(userCommand);
+						break;
+					case "index":
+						System.out.println("Case: CREATE INDEX");
+						parseCreateIndex(userCommand);
+						break;
+					default:
+						System.out.println("I do not understand this command!");
+						break;
+				}
 				break;
 			case "insert":
 				System.out.println("Case: INSERT");
@@ -227,10 +242,28 @@ public class Commands {
 			}
 	}
 	
+	// DELETE - WORKING!!!
 	public static void parseDelete(ArrayList<String> commandTokens) {
 		System.out.println("Command: " + tokensToCommandString(commandTokens));
 		System.out.println("Stub: This is the deleteRecord method");
 		/* TODO: Your code goes here */
+
+		String command = tokensToCommandString(commandTokens);
+
+		System.out.println("Parsing the string:\"" + command + "\"");
+		
+		String table = command.split(" ")[2];
+		String[] rawConditionArray = command.split("where");
+		String rawCondition = rawConditionArray.length>1?rawConditionArray[1]:"";
+		String[] parsedCondition = rawConditionArray.length>1?parseCondition(rawCondition) : new String[0];
+		if(tableExists(table)){
+			Table.delete(table, parsedCondition, Constants.userDataDir);
+		}
+		else
+		{
+			System.out.println("Table "+table+" does not exist.");
+		}
+
 	}
 	
 
@@ -347,13 +380,46 @@ public class Commands {
 		return parsedCondition;
 	}
 
-	/**
-	 *  Stub method for updating records
-	 *  @param updateString is a String of the user input
-	 */
+	// UPDATE
 	public static void parseUpdate(ArrayList<String> commandTokens) {
 		System.out.println("Command: " + tokensToCommandString(commandTokens));
 		System.out.println("Stub: This is the parseUpdate method");
+
+		String command = tokensToCommandString(commandTokens);
+
+		System.out.println("Parsing the string:\"" + command + "\"");
+		
+		String table = command.split(" ")[1];
+		String whereCondition = command.split("set")[1].split("where")[1];
+		String setCondition = command.split("set")[1].split("where")[0];
+		String[] parsedCondition = parseCondition(whereCondition);
+		String[] parsedSetCondition = parseCondition(setCondition);
+		if(!tableExists(table)){
+			System.out.println("Table "+table+" does not exist.");
+		}
+		else
+		{
+			Table.update(table, parsedCondition, parsedSetCondition, Constants.userDataDir);
+		}
+	}
+
+	public static void parseCreateIndex(String command)
+	{
+		// String command = tokensToCommandString(commandTokens);
+
+		System.out.println("Parsing the string:\"" + command + "\"");
+		
+		String[] tokens=command.split(" ");
+		String tableName = tokens[3];
+		String[] temp = command.split(tableName);
+		String cols = temp[1].trim();
+		String[] create_cols = cols.substring(1, cols.length()-1).split(",");
+		
+		for(int i = 0; i < create_cols.length; i++)
+			create_cols[i] = create_cols[i].trim();
+		
+		
+		Table.createIndex(tableName, create_cols);	
 	}
 
 	public static String tokensToCommandString (ArrayList<String> commandTokens) {
@@ -382,6 +448,8 @@ public class Commands {
 		out.println("All commands below are case insensitive\n");
 		out.println("SHOW TABLES;");
 		out.println("\tDisplay the names of all tables.\n");
+		out.println("CREATE TABLE table_name (<column_name <datatype> <NOT NULL/UNIQUE>)");
+		out.println("\tCreate a new table in the database");
 		out.println("SELECT ⟨column_list⟩ FROM table_name [WHERE condition];\n");
 		out.println("\tDisplay table records whose optional condition");
 		out.println("\tis <column_name> = <value>.\n");
