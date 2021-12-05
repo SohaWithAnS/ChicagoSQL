@@ -10,7 +10,7 @@ public class BPlusTree{
 		for(int i = 1; i < dataType.length; i++){
 			String dt = dataType[i];
 			
-			if(dt.equals("TINYINT")) {
+			if(dt.equals("TINYINT") || dt.equals("YEAR")) {
 				val += 1;
 			}
 			else if(dt.equals("SMALLINT")) {

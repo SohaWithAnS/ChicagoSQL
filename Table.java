@@ -178,7 +178,13 @@ public class Table{
 						temp = file.readLong();
 						Date date = new Date(temp);
 						values[i] = dateFormat.format(date).substring(0,10);
+						// System.out.println(values[0]+ " " + values[1] + " " + values[2] + " " + values[3] + " ");
 						break;
+
+					// case Constants.YEAR:
+					// 	temp = file.readLong();
+					// 	Date year = new Date(temp);
+					// 	values[0] = dateFormat.format(year);
 
 					//text case
 					default:    int len = typeCode[i-1]-0x0C;
